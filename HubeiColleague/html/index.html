@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0">
+        <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+        <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
+        <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <script src="../node_modules/babel-polyfill/dist/polyfill.min.js"></script>
+        <title>OpenLayers-Map</title>
+        <style>
+            html,body{
+                width:100%;
+                height: 100%;
+                margin:0;
+                padding: 0;
+            }
+            #map{
+                width: 100%;
+                height: 100%;
+            }
+            .control-btn{
+                position: absolute;
+                top: 30px;
+                right: 50px;
+                z-index: 999;
+            }
+            /*导航栏样式*/
+            .navbar{
+                position:absolute;
+                top: 10px;
+                right:100px;
+                z-index:9999;
+                padding:2px;
+            }
+            .bg-dark {
+                background-color: #699bcc!important;
+            }
+
+            .btn{
+                color:white;
+            }
+            .btn:hover {
+                color: rgb(255 255 255 / 75%);
+            }
+
+            .navbar-dark .navbar-nav .nav-link {
+                color: rgba(255,255,255,1);
+            }
+            /*图层管理*/
+            .toolPanel{
+                z-index: 999;
+                position: absolute;
+                top: 80px;
+                right: 20px;
+                width: 200px;
+                height: 400px;
+                display: none;
+            }
+            /*比例尺位置*/
+            .ol-scale-line {
+                left: 200px !important;
+            }
+            /*弹框*/
+            .ol-tooltip {
+                position: relative;
+                background: rgba(0, 0, 0, 0.5);
+                border-radius: 4px;
+                color: white;
+                padding: 4px 8px;
+                opacity: 0.7;
+                white-space: nowrap;
+                font-size: 12px;
+                cursor: default;
+                user-select: none;
+            }
+            .ol-tooltip-measure {
+                opacity: 1;
+                font-weight: bold;
+            }
+            .ol-tooltip-static {
+                background-color: #ff1100;
+                color: black;
+                border: 1px solid white;
+            }
+            .ol-tooltip-measure:before,
+            .ol-tooltip-static:before {
+                border-top: 6px solid rgba(0, 0, 0, 0.5);
+                border-right: 6px solid transparent;
+                border-left: 6px solid transparent;
+                content: "";
+                position: absolute;
+                bottom: -6px;
+                margin-left: -7px;
+                left: 50%;
+            }
+            .ol-tooltip-static:before {
+                border-top-color: #ff1100;
+            }
+            .ol-popup {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.6) ;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    bottom: 12px;
+    left: -50px;
+    min-width: 280px;
+}
+.ol-popup:after,
+.ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+}
+
+.ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+}
+
+.ol-popup-closer {
+    text-decoration: none;
+    position: absolute;
+    top: 2px;
+    right: 8px;
+}
+
+.ol-popup-closer:after {
+    content: "";
+}
+/**/
+
+        </style>
+    </head>
+    <body>
+        <div id="popup" class="ol-popup" >
+            <a href="#" id="popup-closer" class="ol-popup-closer">关闭</a>
+            <div id="popup-content"></div>
+        </div>
+        <div id="map"><div id="staPopup"></div></div>
+        <div id="he-plugin-simple"></div>
+<script>
+WIDGET = {
+  "CONFIG": {
+    "modules": "01234",
+    "background": "1",
+    "tmpColor": "FFFFFF",
+    "tmpSize": "16",
+    "cityColor": "FFFFFF",
+    "citySize": "16",
+    "aqiColor": "FFFFFF",
+    "aqiSize": "16",
+    "weatherIconSize": "24",
+    "alertIconSize": "18",
+    "padding": "10px 10px 10px 10px",
+    "shadow": "0",
+    "language": "auto",
+    "borderRadius": "10",
+    "fixed": "true",
+    "vertical": "top",
+    "horizontal": "left",
+    "left":"10",
+    "top":"10",
+    "city": "CN101200101",
+    "key": "dda202ab689e4fdaa373b965532ec3bc"
+  }
+}
+</script>
+<script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script>
+        <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+            <!-- Brand -->
+            <input type="search" name="search" placeholder="请输入要查询的高校名" id="searchbox">
+            <button id="search" type="button" class="btn">搜索</button> 
+            <li class="nav-item">
+                <button id="spatialQ" type="button" class="btn">空间查询</button>
+              </li>
+              <li class="nav-item">
+                <button id="cc" type="button" class="btn">清除查询</button>
+              </li>
+          
+            <!-- Links -->
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <button id="addControl" type="button" class="btn">鹰眼</button>
+              </li>
+              <li class="nav-item">
+                <button id="layer" type="button" class="btn">图层管理</button>
+              </li>
+          
+              <!-- Dropdown -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                    绘制标注
+                </a>
+                <div class="dropdown-menu">
+                  <a id="markerPoint" class="dropdown-item marker-tool" href="#">点标注</a>
+                  <a id="markerLine" class="dropdown-item marker-tool" href="#">线标注</a>
+                  <a id="markerSquare" class="dropdown-item marker-tool" href="#">方形标注</a>
+                  <a id="markerCircle" class="dropdown-item marker-tool" href="#">圆形标注</a>
+                  <a id="markerPolygon" class="dropdown-item marker-tool" href="#">多边形标注</a>
+                  <a id="markerClear" class="dropdown-item marker-tool" href="#">清除标注</a>
+                </div>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                    测量
+                </a>
+                <div class="dropdown-menu">
+                  <a id="measureCoordinate" class="dropdown-item measure-tool" href="#">坐标拾取</a>
+                  <a id="measureDistance" class="dropdown-item measure-tool" href="#">测距离</a>
+                  <a id="measureArea" class="dropdown-item measure-tool" href="#">测面积</a>
+                  <a id="measureClear" class="dropdown-item measure-tool" href="#">清除测量</a>
+                </div>
+              </li>
+            </ul>
+          </nav>
+        <div class="layui-card toolPanel">
+            <div class="layui-card-header"><span class="layui-tree-iconClick layui-tree-icon"><i class="layerPanelTitle" style="cursor:pointer;color: #000000a8;">x</i></span>图层</div>
+            <div class="layui-card-body">
+              <div id="tocTree"></div>
+            </div>
+        </div>
+        <script src="../js/index.js"></script>
+        <!-- <script src="../js/layerC.js"></script> -->
+    </body>
+</html>
